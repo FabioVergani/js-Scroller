@@ -1,0 +1,206 @@
+
+/*
+#Events
+
+	x.preventDefault(); #Cancels the event if it is cancelable, without stopping further propagation of the event.
+	x.stopPropagation, #which keeps the event from bubbling any further up into the DOM
+	x.stopImmediatePropagation(); #Prevents other listeners of the same event to be called.
+
+	ie The 'window.event' object is available only during an event—that is, you can use it in event handlers but not in other code.
+
+
+#HTMLElement
+
+	x.offsetTop :  returns the distance of the current element relative to the top of the offsetParent node.
+
+	x.offsetParent :returns a reference to the object which is the closest (nearest in the containment hierarchy) positioned containing element.
+	If the element is non-positioned, the nearest table cell or root element (html in standards compliant mode; body in quirks rendering mode) is the offsetParent.
+	offsetParent returns null when the element has style.display set to "none". The offsetParent is useful because offsetTop and offsetLeft are relative to its padding edge.
+
+#window.scrollTo(x-coord,y-coord )
+
+x-coord is the pixel along the horizontal axis of the document that you want displayed in the upper left.
+y-coord is the pixel along the vertical axis of the document that you want displayed in the upper left.
+
+#document.documentElement
+
+	Returns the Element that is the root element of the document (for example, the <html> element for HTML documents).
+	 you can use document.firstChild instead (which is DOM Level 1, and is supported by all modern browsers).
+
+	document.documentElement||document.firstChild
+	document.body.parentNode
+	document.getElementsByTagName('html')[0],
+
+	b=d.body||w.$TagElements('body',0);
+	h=d.documentElement||b.parentNode;
+
+#$
+Element.getElementsByTagName
+
+	getElementsByName
+	getElementsByTagName("a");
+
+Returns a NodeList
+
+*/
+
+/*
+window.getPageOffset=function(){
+var w=window, d=w.document, b=d.body||d.getElementsByTagName('body')[0],;
+
+h=d.documentElement||(d.firstChild);
+
+var x = (w.pageXOffset !== undefined) ? w.pageXOffset : (d.documentElement || d.body.parentNode || d.body).scrollLeft;
+var y = (w.pageYOffset !== undefined) ? w.pageYOffset : (d.documentElement || d.body.parentNode || d.body).scrollTop;
+};
+
+scrollWidth
+is a read–only property that returns either the width in pixels of the content of an element or the width of the element itself,
+whichever is greater. If the element is wider than its content area (for example, if there are scroll bars for scrolling through the content),
+the scrollWidth is larger than the clientWidth.
+
+*/
+
+
+
+//
+(function(w){
+
+ var d=w.document, a='addEventListener',b='attachEvent',p=d[a]?a:d[b]?b:0;
+ function g(o,e,f){var r=0;if(o && o[p]){r=o[p](e,f,0)};return r};
+ w.onEvent=p?g:0;
+ w.stopEvent=w.Event?function(e){function f(o,p){if(o[p]){o[p]()}};f(e,'preventDefault');f(e,'stopPropagation')}:function(){var e=w.event;if(e){e.cancelBubble=1;e.returnValue=0}};
+
+ w.$TagElements=function(s,n){
+	var r=0;
+	if(s){var m=d.getElementsByTagName(s);if(m.length){n||n===0?(r=m.item(n),r=r?r:0):r=m}};
+	return r;
+ };
+
+
+})(window);
+//
+//---------------------------------------------------------------------------------------------------------------
+window.scrollTo.Scroller={
+
+	dest:function(e){
+
+		var w=window, d=w.document, b=d.body||w.$TagElements('body',0), h=d.documentElement||b.parentNode;
+
+		var wiH=w.innerHeight, hcH=h.clientHeight,wiW=w.innerWidth, hcW=h.clientWidth;
+
+		var wH=wiH||hcH, wW=wiW||hcW,  z=h||b;
+
+		var Scroller=this, Yi=null, Yn=null;
+
+
+		var intoViewport=function(e){
+			var r=0;
+			if(e){
+			 var o=e.getBoundingClientRect();//console.log(o);
+			 r=(o.bottom > 0 && o.right > 0 && o.left < wW && o.top < wH);
+			 if(r){
+				r=o;
+				r.valueOf=function(){return 1};
+			 }
+			};
+			return r;
+		};
+
+
+
+		var FN=function(axisV,offsetV,scrollV,offsetP,j,t,u,speed){
+
+			speed=speed||9;
+
+			var o=window.scrollTo, M=Math, MR=M.round, calc=function(p,q){var r=0,v=(b?b[p]:(h?h[p]:0));if(v){r=v}else{r=q};return r};
+
+			var n=e.offsetParent?e[offsetV]:0, i=calc(scrollV,(offsetP=="")?z[scrollV]:offsetP), k=MR(n-i), s=k/speed;
+			o.Scroller[axisV+'n']=n;
+			if(n>i){var l=(u-n);if(l<(j||t)){s=(k-l)/speed};s=M.ceil(s)};
+			i+=s;
+			o.Scroller[axisV+'i']=i;
+			return M.floor(i)
+		};
+
+		var isVisible=intoViewport(e);
+		if(isVisible){
+
+			clearInterval(Scroller.interval);
+
+			console.log(isVisible.bottom);
+
+			//w.scrollBy(0,isVisible.top);
+			//isVisible.top
+			//w.scrollTo(0,e.scrollWidth)
+			//console.dir(w);
+
+		}else{
+			w.scrollTo(0,FN('Y','offsetTop','scrollTop',w.pageYOffset,wiH,hcH,b.scrollHeight));
+			Yi=Scroller.Yi, Yn=Scroller.Yn;
+			if(Yi==Yn||Scroller.offsetTop==Yi){//Y:finish!
+				clearInterval(Scroller.interval);//console.log(Yn,"end");
+			}else{
+				Scroller.offsetTop=Yi;//console.log(Yi);
+			};
+		};
+
+
+
+
+	},
+
+
+
+};
+//
+window.scrollTo.Element=function(e){
+	if(e){
+		var o=window.scrollTo.Scroller;
+		clearInterval(o.interval);
+		o.interval=setInterval(function(){o.dest(e)}, 10);
+	}
+};
+
+
+
+
+//---------------------------------------------------------------------------------------------------------------
+function ProvaScroll(){
+	var w=window,d=document,forEach=Array.prototype.forEach,items=d.getElementsByTagName("a");
+	forEach.call(items,function(e){
+		var s=e.hash;
+		if(s && s.trim()){
+			s=s.substr(1,s.length);
+			var n=d.getElementsByName(s)[0];
+			if(n){
+				w.onEvent(e,"click",function(x){
+					console.log("destination:"+s,n);
+					w.stopEvent(x);
+					w.scrollTo.Element(n);
+				});
+			};
+		};
+	});
+}
+//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+console.log(s)
+function(){return x};
+//clearInterval(Scroller.interval);
+//Scroller.interval = setInterval("Scroller.scroll(" + Scroller.offsetParent(x) + ")", 10)
+*/
